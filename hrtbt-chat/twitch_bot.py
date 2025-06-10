@@ -1,32 +1,29 @@
+import asyncio
 from twitchio.ext import commands
-from sentiment import classify_emotion
+from sentiment import classify_and_store
 
 class TwitchChatBot(commands.Bot):
     def __init__(self, token, channel, message_buffer):
-        super().__init__(
-            token=f'oauth:{token}',
-            prefix='!',
-            initial_channels=[channel]
-        )
-        self.channel = channel
+        super().__init__(token=token, prefix='!', initial_channels=[channel])
         self.message_buffer = message_buffer
 
     async def event_ready(self):
-        print(f'Connected to Twitch chat as {self.nick}')
+        print(f'Logged in as | {self.nick}')
 
     async def event_message(self, message):
-        print("Message received")  # Debug: this tells us the bot is getting messages
-
         if message.echo:
             return
 
-        emotion = classify_emotion(message.content)
+        text = message.content
+        user = message.author.name
 
+        # Classify and insert into MongoDB
+        emotion = classify_and_store(user, text)
+        print(f"{user}: {text} -> {emotion}")
+
+        # Add to in-memory buffer for /messages and /summary endpoints
         self.message_buffer.append({
-            "user": message.author.name,
-            "text": message.content,
+            "user": user,
+            "text": text,
             "emotion": emotion
         })
-
-        print(f'{message.author.name}: {message.content} ({emotion})')
-

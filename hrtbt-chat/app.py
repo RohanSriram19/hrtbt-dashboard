@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from twitch_bot import TwitchChatBot
 from collections import Counter
 import threading
 import asyncio
 
 app = Flask(__name__)
+CORS(app)  # <-- This enables CORS for all routes
 
 bot = None
 bot_thread = None
@@ -58,3 +60,4 @@ def emotion_summary():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
