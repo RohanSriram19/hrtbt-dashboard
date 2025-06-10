@@ -1,16 +1,19 @@
-import text2emotion as t2e
+from transformers import pipeline
+
+# Load emotion classification pipeline from HuggingFace
+emotion_classifier = pipeline("text-classification", model="nateraw/bert-base-uncased-emotion")
 
 def classify_emotion(text):
     """
-    Returns the dominant emotion from the text.
-    One of: Happy, Angry, Surprise, Sad, Fear
-    If no emotion is found, returns 'neutral'
+    Uses BERT to classify the dominant emotion from the input text.
+
+    Returns one of: sadness, joy, love, anger, fear, surprise
     """
-    emotions = t2e.get_emotion(text)
+    if not text.strip():
+        return "neutral"
 
-    if not emotions or sum(emotions.values()) == 0:
-        return 'neutral'
-
-    # Get the emotion with the highest score
-    dominant_emotion = max(emotions, key=emotions.get)
-    return dominant_emotion.lower()
+    try:
+        result = emotion_classifier(text, truncation=True)[0]
+        return result['label'].lower()
+    except Exception:
+        return "neutral"
